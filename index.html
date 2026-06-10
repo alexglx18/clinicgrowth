@@ -262,7 +262,7 @@ h2 em{font-style:normal;color:var(--blue)}
     <a href="#results">Results</a>
     <a href="#faq">FAQ</a>
   </div>
-  <button class="nav-btn" onclick="scrollTo('get-started')">Book a call</button>
+  <button class="nav-btn" onclick="scrollToSection('get-started')">Book a call</button>
 </nav>
 
 <!-- HERO -->
@@ -271,7 +271,7 @@ h2 em{font-style:normal;color:var(--blue)}
   <h1>This is the exact system we used to generate <em>$639k</em> for a clinic in 9 months.</h1>
   <p class="hero-sub">We turn your expertise into a full AI content studio and patient pipeline, without you filming weekly, managing ads, or chasing leads. Your only job is treating patients.<br><br>Watch the step by step process.</p>
   <div class="hero-btns">
-    <button class="btn-primary" onclick="scrollTo('get-started')"><i class="ti ti-calendar"></i>Claim your free strategy call</button>
+    <button class="btn-primary" onclick="scrollToSection('get-started')"><i class="ti ti-calendar"></i>Claim your free strategy call</button>
   </div>
   <div class="trust-row">
     <div class="trust-item"><i class="ti ti-shield-check"></i> Compliance built in</div>
@@ -474,7 +474,8 @@ h2 em{font-style:normal;color:var(--blue)}
 
 <script>
 /* ─── helpers ─────────────────────────────────────────── */
-function scrollTo(id){
+function scrollToSection(id){
+  // renamed from scrollTo to avoid conflict with window.scrollTo
   var el=document.getElementById(id);
   if(el)el.scrollIntoView({behavior:'smooth'});
 }
