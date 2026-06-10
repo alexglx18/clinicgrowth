@@ -394,9 +394,7 @@ h2 em{font-style:normal;color:var(--blue)}
         <div class="options">
           <button class="option" onclick="selectOption(this)"><span class="opt-emoji">🦴</span> Orthopedics / Pain Management</button>
           <button class="option" onclick="selectOption(this)"><span class="opt-emoji">✨</span> Aesthetics / Med Spa</button>
-          <button class="option" onclick="selectOption(this)"><span class="opt-emoji">💆</span> Longevity / Anti-Aging</button>
-          <button class="option" onclick="selectOption(this)"><span class="opt-emoji">💈</span> Hair Restoration</button>
-          <button class="option" onclick="selectOption(this)"><span class="opt-emoji">🔬</span> Other / Multiple</button>
+          <button class="option" onclick="selectOption(this)"><span class="opt-emoji">🔬</span> Other</button>
         </div>
       </div>
       <div class="form-step" id="step-2">
@@ -569,29 +567,104 @@ function toggleTestiVideo(btn,idx){
 
 /* ─── Multi-step form ─────────────────────────────────── */
 var cur=1,tot=7;
+var answers={};
+
+// !! Replace with your Formspree form ID after signing up at formspree.io
+var FORMSPREE_ENDPOINT='https://formspree.io/f/REPLACE_WITH_YOUR_ID';
+
 function updateProgress(){
   document.getElementById('progress').style.width=((cur/tot)*100)+'%';
   document.getElementById('btn-back').style.visibility=cur>1?'visible':'hidden';
   var btn=document.getElementById('btn-next');
   btn.innerHTML=cur===tot?'Submit <i class="ti ti-check"></i>':'Continue <i class="ti ti-arrow-right"></i>';
 }
+
 function selectOption(el){
   el.parentElement.querySelectorAll('.option').forEach(function(o){o.classList.remove('selected')});
   el.classList.add('selected');
+  // clear error on selection
+  var err=el.closest('.form-step').querySelector('.form-error');
+  if(err)err.style.display='none';
 }
+
+function showError(msg){
+  var step=document.getElementById('step-'+cur);
+  var err=step.querySelector('.form-error');
+  if(!err){
+    err=document.createElement('p');
+    err.className='form-error';
+    err.style.cssText='color:#E53E3E;font-size:12px;margin-top:-0.5rem';
+    step.appendChild(err);
+  }
+  err.textContent=msg;
+  err.style.display='block';
+}
+
+function validateStep(){
+  var step=document.getElementById('step-'+cur);
+  // option steps (1-5)
+  if(cur<=5){
+    var sel=step.querySelector('.option.selected');
+    if(!sel){showError('Please select an option to continue.');return false;}
+    var q=step.querySelector('h3').textContent;
+    answers['Q'+cur+': '+q.replace(/[🏥📊💉🎯💰]/g,'').trim()]=sel.textContent.trim();
+  }
+  // text input steps (6-7)
+  if(cur===6){
+    var inputs=step.querySelectorAll('.text-input');
+    if(!inputs[0].value.trim()){inputs[0].focus();showError('Please enter your name.');return false;}
+    if(!inputs[1].value.trim()){inputs[1].focus();showError('Please enter your clinic name.');return false;}
+    answers['Name']=inputs[0].value.trim();
+    answers['Clinic']=inputs[1].value.trim();
+  }
+  if(cur===7){
+    var inputs=step.querySelectorAll('.text-input');
+    if(!inputs[0].value.trim()){inputs[0].focus();showError('Please enter your phone number.');return false;}
+    if(!inputs[1].value.trim()||!inputs[1].value.includes('@')){inputs[1].focus();showError('Please enter a valid email address.');return false;}
+    answers['Phone']=inputs[0].value.trim();
+    answers['Email']=inputs[1].value.trim();
+  }
+  return true;
+}
+
 function showStep(n){
   document.querySelectorAll('.form-step').forEach(function(s){s.classList.remove('active')});
   var s=document.getElementById('step-'+n);
   if(s)s.classList.add('active');
   updateProgress();
 }
-function nextStep(){
-  if(cur===tot){
+
+function submitToFormspree(){
+  var btn=document.getElementById('btn-next');
+  btn.innerHTML='Sending... <i class="ti ti-loader"></i>';
+  btn.disabled=true;
+
+  var payload=Object.assign({},answers,{_subject:'New ClinicGrowth lead'});
+
+  fetch(FORMSPREE_ENDPOINT,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Accept':'application/json'},
+    body:JSON.stringify(payload)
+  }).then(function(r){
     document.querySelectorAll('.form-step').forEach(function(s){s.classList.remove('active')});
     document.getElementById('step-success').classList.add('active');
     document.getElementById('form-footer').style.display='none';
     document.getElementById('form-note').style.display='none';
     document.getElementById('progress').style.width='100%';
+  }).catch(function(){
+    // still show success to user even if submission fails
+    document.querySelectorAll('.form-step').forEach(function(s){s.classList.remove('active')});
+    document.getElementById('step-success').classList.add('active');
+    document.getElementById('form-footer').style.display='none';
+    document.getElementById('form-note').style.display='none';
+    document.getElementById('progress').style.width='100%';
+  });
+}
+
+function nextStep(){
+  if(!validateStep())return;
+  if(cur===tot){
+    submitToFormspree();
     return;
   }
   cur++;showStep(cur);
