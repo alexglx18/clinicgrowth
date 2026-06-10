@@ -582,9 +582,10 @@ function updateProgress(){
 function selectOption(el){
   el.parentElement.querySelectorAll('.option').forEach(function(o){o.classList.remove('selected')});
   el.classList.add('selected');
-  // clear error on selection
   var err=el.closest('.form-step').querySelector('.form-error');
   if(err)err.style.display='none';
+  // auto-advance on option steps
+  setTimeout(function(){nextStep();},260);
 }
 
 function showError(msg){
